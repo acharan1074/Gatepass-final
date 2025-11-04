@@ -1,0 +1,143 @@
+{% extends 'gatepass/base.html' %}
+
+{% block title %}Record Student Return - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2><i class="fas fa-home me-2"></i>Record Student Return</h2>
+            <p class="mb-0 text-muted">Confirm student identity and record their return.</p>
+        </div>
+        <a href="{% url 'security_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Student & Gatepass Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-circle fa-6x text-muted"></i>
+                    <h3 class="mt-2 mb-0">{{ gatepass.student.student_name }}</h3>
+                    <div class="text-muted fs-5">{{ gatepass.student.hall_ticket_no }}</div>
+                </div>
+
+                <hr>
+                
+                <h6 class="text-muted">Gatepass Information</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <strong>Room No:</strong>
+                        <span>{{ gatepass.student.room_no }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <strong>Left At:</strong>
+                        <span>{{ gatepass.outing_date }} at {{ gatepass.outing_time }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                        <strong>Expected Return:</strong>
+                        <span class="fw-bold">{{ gatepass.expected_return_date }} at {{ gatepass.expected_return_time }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Confirmation Form</h5>
+            </div>
+            <div class="card-body d-flex flex-column">
+                
+                <form method="post" class="flex-grow-1">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.actual_return_date.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar me-1"></i>Actual Return Date
+                            </label>
+                            {{ form.actual_return_date }}
+                            {% if form.actual_return_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.actual_return_date.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.actual_return_time.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Actual Return Time
+                            </label>
+                            {{ form.actual_return_time }}
+                            {% if form.actual_return_time.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.actual_return_time.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.return_notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Return Notes (Optional)
+                        </label>
+                        {{ form.return_notes }}
+                        {% if form.return_notes.errors %}
+                            <div class="text-danger">
+                                {% for error in form.return_notes.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Add any notes about the student's return (e.g., late, condition, etc.)</div>
+                    </div>
+
+                    <div class="flex-grow-1"></div>
+
+                    <div class="d-flex justify-content-end align-items-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check me-2"></i>Confirm & Record Return
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card card-body bg-light border">
+            <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Return Guidelines</h6>
+            <ul class="list-inline mb-0">
+                <li class="list-inline-item me-3">
+                    <i class="fas fa-check text-success me-1"></i>Verify student ID
+                </li>
+                <li class="list-inline-item me-3">
+                    <i class="fas fa-check text-success me-1"></i>Check for any items brought in
+                </li>
+                <li class="list-inline-item me-3">
+                    <i class="fas fa-check text-success me-1"></i>Note student's condition
+                </li>
+                <li class="list-inline-item">
+                    <i class="fas fa-check text-success me-1"></i>Record accurate time
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

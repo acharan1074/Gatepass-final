@@ -1,0 +1,537 @@
+{% extends 'gatepass/base.html' %}
+
+{% block title %}Warden Dashboard - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+
+<style>
+    .nav-tabs-scrollable {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        scrollbar-width: none; /* Hide scrollbar on Firefox */
+        border-bottom: 1px solid #dee2e6; /* Re-adds the tab border */
+    }
+    .nav-tabs-scrollable::-webkit-scrollbar {
+        display: none; /* Hide scrollbar on Chrome/Safari */
+    }
+    .nav-tabs-scrollable .nav-tabs {
+        flex-wrap: nowrap; /* Prevent wrapping */
+        min-width: 600px;  /* Force horizontal scroll */
+        border-bottom: none; /* Remove default bottom border */
+    }
+    .nav-tabs-scrollable .nav-item {
+        flex-shrink: 0; /* Prevent items from shrinking */
+    }
+    .nav-tabs .nav-link {
+        white-space: nowrap; /* Keep tab text on one line */
+    }
+    
+    /* General Card & Table Polish */
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .card-header {
+        background-color: #ffffff;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1.25rem;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .table thead {
+        color: #6c757d;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        background-color: #f8f9fa;
+    }
+    .btn-icon span { /* Hide "Review" text on mobile */
+        display: none;
+    }
+    @media (min-width: 992px) { /* Show "Review" text on desktop */
+        .btn-icon span {
+            display: inline-block;
+            margin-left: 0.25rem;
+        }
+    }
+</style>
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2><i class="fas fa-user-tie me-2"></i>Warden Dashboard</h2>
+            <p class="mb-0 text-muted">Prioritize pending approvals and monitor student status.</p>
+        </div>
+    </div>
+</div>
+
+
+<div class="row mb-4 g-3">
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card bg-warning text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x"></i>
+                <h5>Pending</h5>
+                <h3>{{ total_pending }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card bg-info text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-user-times fa-2x"></i>
+                <h5>Students Out</h5>
+                <h3>{{ students_out }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card stat-card bg-success text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-check fa-2x"></i>
+                <h5>Approved</h5>
+                <h3>{{ total_approved }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="card stat-card bg-danger text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-times fa-2x"></i>
+                <h5>Rejected</h5>
+                <h3>{{ total_rejected }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card stat-card bg-primary text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-home fa-2x"></i>
+                <h5>Returned</h5>
+                <h3>{{ total_returned }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="accordion mb-4" id="filterAccordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+                <i class="fas fa-filter me-2"></i>Filter Gatepass Requests & Debug
+            </button>
+        </h2>
+        <div id="collapseFilter" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#filterAccordion">
+            <div class="accordion-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.from_date.id_for_label }}" class="form-label">From Date</label>
+                        {{ filter_form.from_date }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.to_date.id_for_label }}" class="form-label">To Date</label>
+                        {{ filter_form.to_date }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.status_filter.id_for_label }}" class="form-label">Status</label>
+                        {{ filter_form.status_filter }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if filtered_count %}
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <span class="badge bg-info">Showing {{ filtered_count }} result(s)</span>
+                    <a href="{% url 'warden_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+                {% endif %}
+                <hr>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        Debug: Pending={{ pending_requests|length }},
+                        Approved={{ approved_requests|length }},
+                        Rejected={{ rejected_requests|length }},
+                        Returned={{ returned_requests|length }},
+                        Students Out={{ students_out_requests|length }}
+                    </small>
+                    <br>
+                    <a href="{% url 'warden_debug' %}" class="btn btn-sm btn-outline-info mt-2">
+                        <i class="fas fa-bug me-1"></i>Debug Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="nav-tabs-scrollable mb-3">
+    <ul class="nav nav-tabs nav-fill" id="wardenTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-tab-pane" type="button" role="tab" aria-controls="pending-tab-pane" aria-selected="true">
+                <i class="fas fa-inbox me-1"></i>
+                Pending
+                <span class="badge rounded-pill bg-warning text-dark ms-1">{{ total_pending }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="students-out-tab" data-bs-toggle="tab" data-bs-target="#students-out-tab-pane" type="button" role="tab" aria-controls="students-out-tab-pane" aria-selected="false">
+                <i class="fas fa-user-times me-1"></i>
+                Students Out
+                <span class="badge rounded-pill bg-info ms-1">{{ students_out }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="returned-tab" data-bs-toggle="tab" data-bs-target="#returned-tab-pane" type="button" role="tab" aria-controls="returned-tab-pane" aria-selected="false">
+                <i class="fas fa-home me-1"></i>
+                Returned
+                <span class="badge rounded-pill bg-primary ms-1">{{ total_returned }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved-tab-pane" type="button" role="tab" aria-controls="approved-tab-pane" aria-selected="false">
+                <i class="fas fa-check me-1"></i>
+                Approved
+                <span class="badge rounded-pill bg-success ms-1">{{ total_approved }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected-tab-pane" type="button" role="tab" aria-controls="rejected-tab-pane" aria-selected="false">
+                <i class="fas fa-times me-1"></i>
+                Rejected
+                <span class="badge rounded-pill bg-danger ms-1">{{ total_rejected }}</span>
+            </button>
+        </li>
+    </ul>
+</div>
+
+
+<div class="tab-content" id="wardenTabContent">
+
+    <div class="tab-pane fade show active" id="pending-tab-pane" role="tabpanel" aria-labelledby="pending-tab" tabindex="0">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-inbox me-2"></i>Pending Gatepass Requests</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if pending_requests %}
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hall Ticket</th>
+                                <th>Room No</th>
+                                <th>Outing Date</th>
+                                <th>Outing Time</th>
+                                <th>Return Date</th>
+                                <th>Purpose</th>
+                                <th>Parent Mobile</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in pending_requests %}
+                            <tr>
+                                <td class="px-3">{{ request.student.student_name }}</td>
+                                <td class="px-3">{{ request.student.hall_ticket_no }}</td>
+                                <td class="px-3">{{ request.student.room_no }}</td>
+                                <td class="px-3">{{ request.outing_date }}</td>
+                                <td class="px-3">{{ request.outing_time }}</td>
+                                <td class="px-3">{{ request.expected_return_date }}</td>
+                                <td class="px-3">{{ request.purpose|truncatechars:30 }}</td>
+                                <td class="px-3">{{ request.student.parent_mobile }}</td>
+                                <td class="px-3">
+                                    <a href="{% url 'warden_approve_gatepass' request.id %}" class="btn btn-sm btn-primary btn-icon">
+                                        <i class="fas fa-eye"></i><span>Review</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none p-3">
+                    {% for req in pending_requests %}
+                    <div class="card mb-2 border">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ req.student.student_name }}</strong>
+                                    <div class="text-muted small">{{ req.student.hall_ticket_no }} • Room {{ req.student.room_no }}</div>
+                                    <div class="text-muted small">{{ req.outing_date }} {{ req.outing_time }} → {{ req.expected_return_date }}</div>
+                                    <div class="text-muted small">Parent: {{ req.student.parent_mobile }}</div>
+                                </div>
+                                <a href="{% url 'warden_approve_gatepass' req.id %}" class="btn btn-sm btn-primary ms-2">Review</a>
+                            </div>
+                            <div class="small mt-1">{{ req.purpose|default:"No purpose" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-check-circle fa-3x text-success"></i>
+                    <h5 class="mt-2">No pending requests</h5>
+                    <p class="text-muted">All gatepass requests have been processed.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="students-out-tab-pane" role="tabpanel" aria-labelledby="students-out-tab" tabindex="0">
+        <div class="card border-info">
+            <div class="card-header bg-soft-info text-info">
+                <h5 class="mb-0"><i class="fas fa-user-times me-2"></i>Students Currently Out of Hostel</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if students_out_requests %}
+                <small class="text-muted p-3 d-block">Debug: Found {{ students_out_requests|length }} students out</small>
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hall Ticket</th>
+                                <th>Room No</th>
+                                <th>Outing Date</th>
+                                <th>Outing Time</th>
+                                <th>Expected Return</th>
+                                <th>Purpose</th>
+                                <th>Days Out</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in students_out_requests %}
+                            <tr class="table-info">
+                                <td class="px-3">{{ request.student.student_name }}</td>
+                                <td class="px-3">{{ request.student.hall_ticket_no }}</td>
+                                <td class="px-3">{{ request.student.room_no }}</td>
+                                <td class="px-3">{{ request.outing_date }}</td>
+                                <td class="px-3">{{ request.outing_time }}</td>
+                                <td class="px-3">{{ request.expected_return_date }} {{ request.expected_return_time }}</td>
+                                <td class="px-3">{{ request.purpose|truncatechars:30|default:"Not specified" }}</td>
+                                <td class="px-3">
+                                    <span class="badge bg-info">
+                                        {{ request.outing_date|timesince }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none p-3">
+                    {% for req in students_out_requests %}
+                    <div class="card mb-2 border border-info">
+                        <div class="card-body">
+                            <strong>{{ req.student.student_name }}</strong>
+                            <div class="text-muted small">{{ req.student.hall_ticket_no }} • Room {{ req.student.room_no }}</div>
+                            <div class="text-muted small mt-1">Out: {{ req.outing_date }} {{ req.outing_time }}</div>
+                            <div class="text-muted small">Expected: {{ req.expected_return_date }} {{ req.expected_return_time }}</div>
+                            <div class="mt-2">
+                                <span class="badge bg-info">
+                                    {{ req.outing_date|timesince }} out
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-user-check fa-3x text-info"></i>
+                    <h5 class="mt-2">No students currently out</h5>
+                    <p class="text-muted">All students are currently in the hostel.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="returned-tab-pane" role="tabpanel" aria-labelledby="returned-tab" tabindex="0">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-home me-2"></i>Recently Returned Students</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if returned_requests %}
+                <small class="text-muted p-3 d-block">Debug: Found {{ returned_requests|length }} returned students</small>
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hall Ticket</th>
+                                <th>Outing Date</th>
+                                <th>Expected Return</th>
+                                <th>Actual Return</th>
+                                <th>Return Notes</th>
+                                <th>Verified By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in returned_requests %}
+                            <tr>
+                                <td class="px-3">{{ request.student.student_name }}</td>
+                                <td class="px-3">{{ request.student.hall_ticket_no }}</td>
+                                <td class="px-3">{{ request.outing_date }} {{ request.outing_time }}</td>
+                                <td class="px-3">{{ request.expected_return_date }} {{ request.expected_return_time }}</td>
+                                <td class="px-3">
+                                    {% if request.actual_return_date %}
+                                    <strong>{{ request.actual_return_date }} {{ request.actual_return_time }}</strong>
+                                    {% else %}
+                                    <span class="text-muted">Not recorded</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-3">{{ request.return_notes|truncatechars:30|default:"No notes" }}</td>
+                                <td class="px-3">
+                                    {% if request.return_verified_by %}
+                                    {{ request.return_verified_by.first_name }} {{ request.return_verified_by.last_name }}
+                                    {% else %}
+                                    <span class="text-muted">Not verified</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none p-3">
+                    {% for req in returned_requests %}
+                    <div class="card mb-2 border">
+                        <div class="card-body">
+                            <strong>{{ req.student.student_name }}</strong>
+                            <div class="text-muted small">{{ req.student.hall_ticket_no }}</div>
+                            <div class="text-success small mt-1">
+                                <strong>Returned:</strong> 
+                                {% if req.actual_return_date %}
+                                    {{ req.actual_return_date }} {{ req.actual_return_time }}
+                                {% else %}
+                                    <span class="text-muted">Not recorded</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-muted small">
+                                <strong>Verified:</strong> 
+                                {% if req.return_verified_by %}
+                                    {{ req.return_verified_by.first_name }}
+                                {% else %}
+                                    <span class="text-muted">Not verified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-home fa-3x text-primary"></i>
+                    <h5 class="mt-2">No students have returned recently</h5>
+                    <p class="text-muted">Students who have returned will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="approved-tab-pane" role="tabpanel" aria-labelledby="approved-tab" tabindex="0">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-check me-2"></i>Recently Approved</h5>
+            </div>
+            <div class="card-body">
+                {% if approved_requests %}
+                <small class="text-muted mb-2 d-block">Debug: Found {{ approved_requests|length }} approved requests</small>
+                <div class="d-none d-md-block">
+                    {% for request in approved_requests %}
+                    <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded">
+                        <div>
+                            <strong>{{ request.student.student_name }}</strong><br>
+                            <small class="text-muted">{{ request.outing_date }} - {{ request.outing_time }}</small>
+                        </div>
+                        <span class="badge bg-success">Approved</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="d-md-none">
+                    {% for req in approved_requests %}
+                    <div class="card mb-2 border">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ req.student.student_name }}</strong><br>
+                                <small class="text-muted">{{ req.outing_date }} - {{ req.outing_time }}</small>
+                            </div>
+                            <span class="badge bg-success ms-2">Approved</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-clipboard-check fa-3x text-success"></i>
+                    <h5 class="mt-2">No recent approvals</h5>
+                    <p class="text-muted">Approved requests will appear here.</p>
+                    <small class="text-muted">Debug: approved_requests is empty</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="rejected-tab-pane" role="tabpanel" aria-labelledby="rejected-tab" tabindex="0">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-times me-2"></i>Recently Rejected</h5>
+            </div>
+            <div class="card-body">
+                {% if rejected_requests %}
+                <small class="text-muted mb-2 d-block">Debug: Found {{ rejected_requests|length }} rejected requests</small>
+                <div class="d-none d-md-block">
+                    {% for request in rejected_requests %}
+                    <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded">
+                        <div>
+                            <strong>{{ request.student.student_name }}</strong><br>
+                            <small class="text-muted">{{ request.outing_date }} - {{ request.outing_time }}</small>
+                        </div>
+                        <span class="badge bg-danger">Rejected</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="d-md-none">
+                     {% for req in rejected_requests %}
+                    <div class="card mb-2 border">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                Code:
+                                <strong>{{ req.student.student_name }}</strong><br>
+                                <small class="text-muted">{{ req.outing_date }} - {{ req.outing_time }}</small>
+                            </div>
+                            <span class="badge bg-danger ms-2">Rejected</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-ban fa-3x text-danger"></i>
+                    <h5 class="mt-2">No recent rejections</h5>
+                    <p class="text-muted">Rejected requests will appear here.</a.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div> {% endblock %}

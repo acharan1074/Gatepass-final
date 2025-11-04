@@ -1,0 +1,193 @@
+{% extends 'gatepass/base.html' %}
+
+{% block title %}Create Gatepass Request - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .card-header {
+        background-color: #ffffff;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1.25rem;
+    }
+    
+    /* Style for the wizard steps */
+    .wizard-tabs .nav-link {
+        color: #6c757d; /* Muted text */
+        background-color: #f8f9fa; /* Light gray */
+        border-bottom: 3px solid #dee2e6 !important; /* Muted border */
+        border-radius: 0;
+        padding: 1rem;
+        font-weight: 500;
+    }
+    .wizard-tabs .nav-link.active {
+        color: var(--bs-primary);
+        background-color: #fff;
+        border-color: var(--bs-primary) !important;
+        font-weight: 600;
+    }
+    .wizard-tabs .nav-link.disabled {
+        color: #adb5bd;
+        background-color: #f8f9fa;
+    }
+</style>
+
+<div class="page-header mb-4">
+    <h2><i class="fas fa-paper-plane me-2"></i>Create Gatepass Request</h2>
+    <p class="text-muted">Submit a new gatepass request for your outing</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card">
+            <div class="card-body p-4 p-md-5">
+
+                <nav>
+                    <div class="nav nav-tabs wizard-tabs nav-fill" id="nav-tab" role="tablist">
+                        <button class="nav-link active" id="nav-step1-tab" data-bs-toggle="tab" data-bs-target="#nav-step1" type="button" role="tab" aria-controls="nav-step1" aria-selected="true">
+                            <i class="fas fa-user-check me-2"></i>Step 1: Verify Details
+                        </button>
+                        <button class="nav-link disabled" id="nav-step2-tab" data-bs-toggle="tab" data-bs-target="#nav-step2" type="button" role="tab" aria-controls="nav-step2" aria-selected="false">
+                            <i class="fas fa-calendar-alt me-2"></i>Step 2: Outing Details
+                        </button>
+                    </div>
+                </nav>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="tab-content pt-4" id="nav-tabContent">
+
+                        <div class="tab-pane fade show active" id="nav-step1" role="tabpanel" aria-labelledby="nav-step1-tab" tabindex="0">
+                            <h4 class="mb-3">Your Information</h4>
+                            <p class="text-muted">Please verify your details are correct. If anything is wrong, contact the hostel office.</p>
+                            
+                            <div class="card bg-light border">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item bg-light d-flex justify-content-between align-items-center flex-wrap">
+                                        <strong>Name:</strong>
+                                        <span>{{ student.student_name }}</span>
+                                    </li>
+                                    <li class="list-group-item bg-light d-flex justify-content-between align-items-center flex-wrap">
+                                        <strong>Hall Ticket:</strong>
+                                        <span>{{ student.hall_ticket_no }}</span>
+                                    </li>
+                                    <li class="list-group-item bg-light d-flex justify-content-between align-items-center flex-wrap">
+                                        <strong>Room No:</strong>
+                                        <span>{{ student.room_no }}</span>
+                                    </li>
+                                    <li class="list-group-item bg-light d-flex justify-content-between align-items-center flex-wrap">
+                                        <strong>Parent Contact:</strong>
+                                        <span class="text-end">
+                                            {{ student.parent_name }} ({{ student.parent_mobile }})
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" id="next-step-btn">
+                                    Next: Enter Details <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="nav-step2" role="tabpanel" aria-labelledby="nav-step2-tab" tabindex="0">
+                            <h4 class="mb-3">Outing Details</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.outing_date.id_for_label }}" class="form-label">Outing Date *</label>
+                                    {{ form.outing_date }}
+                                    {% if form.outing_date.errors %}
+                                        <div class="text-danger"><small>{{ form.outing_date.errors.0 }}</small></div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.outing_time.id_for_label }}" class="form-label">Outing Time *</label>
+                                    {{ form.outing_time }}
+                                    {% if form.outing_time.errors %}
+                                        <div class="text-danger"><small>{{ form.outing_time.errors.0 }}</small></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.expected_return_date.id_for_label }}" class="form-label">Expected Return Date *</label>
+                                    {{ form.expected_return_date }}
+                                    {% if form.expected_return_date.errors %}
+                                        <div class="text-danger"><small>{{ form.expected_return_date.errors.0 }}</small></div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.expected_return_time.id_for_label }}" class="form-label">Expected Return Time *</label>
+                                    {{ form.expected_return_time }}
+                                    {% if form.expected_return_time.errors %}
+                                        <div class="text-danger"><small>{{ form.expected_return_time.errors.0 }}</small></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.purpose.id_for_label }}" class="form-label">Purpose of Outing</label>
+                                {{ form.purpose }}
+                                {% if form.purpose.errors %}
+                                    <div class="text-danger"><small>{{ form.purpose.errors.0 }}</small></div>
+                                {% endif %}
+                            </div>
+                        
+                            <div class="alert alert-warning border-warning mt-4">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                                    <div>
+                                        <strong>Important:</strong> After submitting, your parent will receive a verification code on <strong>{{ student.parent_mobile }}</strong>. Please ensure this is correct.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-between align-items-center mt-4">
+                                <button type="button" class="btn btn-outline-secondary" id="back-step-btn">
+                                    <i class="fas fa-arrow-left me-2"></i>Back
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg btn-icon">
+                                    <i class="fas fa-paper-plane"></i><span>Submit Request</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the tab triggers
+    const step1Tab = new bootstrap.Tab(document.getElementById('nav-step1-tab'));
+    const step2Tab = new bootstrap.Tab(document.getElementById('nav-step2-tab'));
+
+    // Get the buttons
+    const nextBtn = document.getElementById('next-step-btn');
+    const backBtn = document.getElementById('back-step-btn');
+    
+    // Get the tab link for step 2
+    const step2TabLink = document.getElementById('nav-step2-tab');
+
+    // "Next" button click
+    nextBtn.addEventListener('click', function() {
+        step2TabLink.classList.remove('disabled'); // Enable the tab
+        step2Tab.show(); // Show the tab
+    });
+
+    // "Back" button click
+    backBtn.addEventListener('click', function() {
+        step1Tab.show(); // Go back to step 1
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'gatepass/base.html' %}
+
+{% block title %}Warden Approval - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        
+        <div class="page-header mb-3">
+            <h2 class="mb-0"><i class="fas fa-gavel me-2"></i>Review Gatepass Request</h2>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-6x text-muted"></i>
+                    <h3 class="mt-2 mb-0">{{ gatepass.student.student_name }}</h3>
+                    <div class="text-muted fs-5">{{ gatepass.student.hall_ticket_no }}</div>
+                </div>
+
+                <h5 class="text-muted">Gatepass Details</h5>
+                <div class="card bg-light mb-4">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                            <strong>Room No:</strong>
+                            <span>{{ gatepass.student.room_no }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                            <strong>Outing Date & Time:</strong>
+                            <span class="text-end">{{ gatepass.outing_date }} at {{ gatepass.outing_time }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                            <strong>Expected Return:</strong>
+                            <span class="text-end">{{ gatepass.expected_return_date }} at {{ gatepass.expected_return_time }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                            <strong>Purpose:</strong>
+                            <span>{{ gatepass.purpose }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <h5 class="text-muted">Parent Contact</h5>
+                <div class="card bg-light mb-4">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Parent Name:</strong>
+                            <span>{{ gatepass.student.parent_name }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Parent Mobile:</strong>
+                            <a href="tel:{{ gatepass.student.parent_mobile }}" class="fw-bold">{{ gatepass.student.parent_mobile }}</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <hr class="my-4">
+
+                {% if readonly %}
+                    <div class="alert alert-info mt-3">
+                        <b>This gatepass request has already been processed ({{ gatepass.get_status_display }})</b><br>
+                        {% if gatepass.warden_approval %}By: {{ gatepass.warden_approval.get_full_name }}{% endif %}
+                        {% if gatepass.status == 'warden_rejected' and gatepass.warden_rejection_reason %}
+                            <div class="mt-2 text-danger"><b>Rejection reason:</b> {{ gatepass.warden_rejection_reason }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'warden_dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                {% else %}
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="card border-warning mb-4">
+                            <div class="card-header bg-warning-subtle">
+                                <h5 class="mb-0"><i class="fas fa-phone-alt me-2"></i>Parent Verification</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check form-switch fs-5">
+                                    {{ form.parent_verification }}
+                                    <label class="form-check-label" for="{{ form.parent_verification.id_for_label }}">
+                                        Parent verification completed.
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Check this box only if you have confirmed with the parent ({{ gatepass.student.parent_mobile }}) that they approve this outing.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h5 class="text-muted">Warden's Decision</h5>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                
+                                {% for choice in form.action %}
+                                    {{ choice.tag }}
+                                    
+                                    {% if choice.choice_label|lower == 'approve' %}
+                                        <label class="btn btn-lg btn-outline-success w-100" for="{{ choice.id_for_label }}">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    {% else %}
+                                        <label class="btn btn-lg btn-outline-danger w-100" for="{{ choice.id_for_label }}">
+                                            <i class="fas fa-times-circle me-2"></i>
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    {% endif %}
+
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div id="rejection-reason" style="display: none;" class="mb-3">
+                            <label for="{{ form.rejection_reason.id_for_label }}" class="form-label fs-5 text-danger">Rejection Reason *</label>
+                            {{ form.rejection_reason }}
+                            {% if form.rejection_reason.errors %}
+                                <div class="text-danger">{{ form.rejection_reason.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="my-4">
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between align-items-center">
+                            <a href="{% url 'warden_dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Decision
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Your original script for the rejection reason
+    const actionRadios = document.querySelectorAll('input[name="action"]');
+    const rejectionReason = document.getElementById('rejection-reason');
+    
+    // Function to check and show/hide the reason box
+    function toggleRejectionReason() {
+        let rejectSelected = false;
+        actionRadios.forEach(radio => {
+            if (radio.value === 'reject' && radio.checked) {
+                rejectSelected = true;
+            }
+        });
+
+        if (rejectSelected) {
+            rejectionReason.style.display = 'block';
+        } else {
+            rejectionReason.style.display = 'none';
+        }
+    }
+
+    // Add change listener to each radio button
+    actionRadios.forEach(radio => {
+        radio.addEventListener('change', toggleRejectionReason);
+    });
+
+    // 2. Script to automatically add 'btn-check' class
+    document.querySelectorAll('input[name="action"]').forEach(radio => {
+        radio.classList.add('btn-check');
+    });
+
+    // 3. Run the check once on page load
+    toggleRejectionReason();
+});
+</script>
+{% endblock %}

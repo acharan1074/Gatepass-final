@@ -1,0 +1,295 @@
+{% extends 'gatepass/base.html' %}
+
+{% block title %}Security Dashboard - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2><i class="fas fa-shield-alt me-2"></i>Security Dashboard</h2>
+            <p class="mb-0">Approve exits and record returns efficiently.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4 g-3">
+    <div class="col-lg-4 col-md-6">
+        <div class="card stat-card bg-warning text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x"></i>
+                <h5>Waiting for Exit</h5>
+                <h3>{{ total_pending }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card stat-card bg-info text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-user-times fa-2x"></i>
+                <h5>Students Currently Out</h5>
+                <h3>{{ total_approved }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-6">
+        <div class="card stat-card bg-success text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-user-check fa-2x"></i>
+                <h5>Returned Today</h5>
+                <h3>{{ total_returned }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-6">
+        <div class="card stat-card bg-primary text-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-door-open fa-2x"></i>
+                <h5>Gate Access</h5>
+                <h3>Active</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<ul class="nav nav-tabs nav-fill mb-3" id="securityTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="exit-tab" data-bs-toggle="tab" data-bs-target="#exit-tab-pane" type="button" role="tab" aria-controls="exit-tab-pane" aria-selected="true">
+            <i class="fas fa-sign-out-alt me-1"></i>
+            Approve Exit
+            <span class="badge rounded-pill bg-warning text-dark ms-1">{{ total_pending }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="return-tab" data-bs-toggle="tab" data-bs-target="#return-tab-pane" type="button" role="tab" aria-controls="return-tab-pane" aria-selected="false">
+            <i class="fas fa-sign-in-alt me-1"></i>
+            Record Return
+            <span class="badge rounded-pill bg-info ms-1">{{ total_approved }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-tab-pane" type="button" role="tab" aria-controls="history-tab-pane" aria-selected="false">
+            <i class="fas fa-history me-1"></i>
+            Recent Returns
+            <span class="badge rounded-pill bg-success ms-1">{{ total_returned }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="securityTabContent">
+
+    <div class="tab-pane fade show active" id="exit-tab-pane" role="tabpanel" aria-labelledby="exit-tab" tabindex="0">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Warden-Approved (Waiting for Exit)</h5>
+            </div>
+            <div class="card-body">
+                {% if approved_requests %}
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hall Ticket</th>
+                                <th>Room No</th>
+                                <th>Outing Date</th>
+                                <th>Outing Time</th>
+                                <th>Return Date</th>
+                                <th>Purpose</th>
+                                <th>Warden Approved</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in approved_requests %}
+                            <tr>
+                                <td>{{ request.student.student_name }}</td>
+                                <td>{{ request.student.hall_ticket_no }}</td>
+                                <td>{{ request.student.room_no }}</td>
+                                <td>{{ request.outing_date }}</td>
+                                <td>{{ request.outing_time }}</td>
+                                <td>{{ request.expected_return_date }}</td>
+                                <td>{{ request.purpose|truncatechars:30 }}</td>
+                                <td>
+                                    {% if request.warden_approval %}
+                                    <span class="badge bg-success">{{ request.warden_approval.first_name }} {{ request.warden_approval.last_name }}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if request.status == 'warden_approved' %}
+                                    <a href="{% url 'security_approve_gatepass' request.id %}" class="btn btn-sm btn-success btn-icon">
+                                        <i class="fas fa-check"></i><span>Approve Exit</span>
+                                    </a>
+                                    {% elif request.status == 'security_approved' %}
+                                    <a href="{% url 'security_record_return' request.id %}" class="btn btn-sm btn-primary btn-icon">
+                                        <i class="fas fa-home"></i><span>Record Return</span>
+                                    </a>
+                                    {% elif request.status == 'returned' %}
+                                    <span class="badge badge-approved">Returned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none">
+                    {% for req in approved_requests %}
+                    <div class="card mb-2 border">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ req.student.student_name }}</strong>
+                                    <div class="text-muted small">{{ req.student.hall_ticket_no }} • Room {{ req.student.room_no }}</div>
+                                    <div class="text-muted small">{{ req.outing_date }} {{ req.outing_time }} → {{ req.expected_return_date }}</div>
+                                    <div class="small mt-1">{{ req.purpose|default:"No purpose" }}</div>
+                                </div>
+                                <div>
+                                    {% if req.status == 'warden_approved' %}
+                                    <a href="{% url 'security_approve_gatepass' req.id %}" class="btn btn-sm btn-success">Approve</a>
+                                    {% elif req.status == 'security_approved' %}
+                                    <a href="{% url 'security_record_return' req.id %}" class="btn btn-sm btn-primary">Return</a>
+                                    {% else %}
+                                    <span class="badge badge-approved">Returned</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-inbox fa-3x text-info"></i>
+                    <h5 class="mt-2">No students waiting for exit</h5>
+                    <p class="text-muted">No gatepass requests are waiting for security approval.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="return-tab-pane" role="tabpanel" aria-labelledby="return-tab" tabindex="0">
+        <div class="card shadow-sm border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-user-times me-2"></i>Students Currently Out</h5>
+            </div>
+            <div class="card-body">
+                {% if security_approved %}
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hall Ticket</th>
+                                <th>Outing Date</th>
+                                <th>Expected Return</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in security_approved %}
+                            <tr>
+                                <td>{{ request.student.student_name }}</td>
+                                <td>{{ request.student.hall_ticket_no }}</td>
+                                <td>{{ request.outing_date }} {{ request.outing_time }}</td>
+                                <td>{{ request.expected_return_date }} {{ request.expected_return_time }}</td>
+                                <td>
+                                    <a href="{% url 'security_record_return' request.id %}" class="btn btn-sm btn-primary btn-icon">
+                                        <i class="fas fa-home"></i><span>Record Return</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none">
+                    {% for req in security_approved %}
+                    <div class="card mb-2 border">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ req.student.student_name }}</strong>
+                                    <div class="text-muted small">{{ req.student.hall_ticket_no }}</div>
+                                    <div class="text-muted small mt-1">Out: {{ req.outing_date }} {{ req.outing_time }}</div>
+                                    <div class_=("text-muted small">Return: {{ req.expected_return_date }} {{ req.expected_return_time }}</div>
+                                </div>
+                                <a href="{% url 'security_record_return' req.id %}" class="btn btn-sm btn-primary ms-2">Return</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state text-center p-4">
+                    <i class="fas fa-user-check fa-3x text-success"></i>
+                    <h5 class="mt-2">No students currently out</h5>
+                    <p class="text-muted">All students are currently in the hostel.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab" tabindex="0">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-home me-2"></i>Recent Returns Log</h5>
+            </div>
+            <div class="card-body">
+                {% if returned_requests %}
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-striped align-middle"> <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Hall Ticket</th>
+                                <th>Actual Return</th>
+                                <th>Return Notes</th>
+                                <th>Verified By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in returned_requests %}
+                            <tr>
+                                <td>{{ request.student.student_name }}</td>
+                                <td>{{ request.student.hall_ticket_no }}</td>
+                                <td>{{ request.actual_return_date }} {{ request.actual_return_time }}</td>
+                                <td>{{ request.return_notes|truncatechars:30|default:"No notes" }}</td>
+                                
+                                <td>{{ request.return_verified_by.first_name }} {{ request.return_verified_by.last_name }}</td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none">
+                    {% for req in returned_requests %}
+                    <div class="card mb-2 border">
+                        <div class="card-body">
+                            <strong>{{ req.student.student_name }}</strong>
+                            <div class="text-muted small">{{ req.student.hall_ticket_no }}</div>
+                            <div class="text-success small mt-1">Returned: {{ req.actual_return_date }} {{ req.actual_return_time }}</div>
+                            <div class="text-muted small">Notes: {{ req.return_notes|truncatechars:30|default:"No notes" }}</div>
+                            <div class="text-muted small">Verified: {{ req.return_verified_by.first_name }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                 <div class="empty-state text-center p-4">
+                    <i class="fas fa-history fa-3x text-muted"></i>
+                    <h5 class="mt-2">No recent returns</h5>
+                    <p class="text-muted">No recent returns have been recorded.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div> {% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'gatepass/base.html' %}
+
+{% block title %}Approve Gatepass - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-check-circle me-2"></i>Approve Gatepass Request</h2>
+        <p class="text-muted">Review and approve gatepass request as Super Admin</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Gatepass Request Details</h5>
+            </div>
+            <div class="card-body">
+                <!-- Student Information -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-muted">Student Information</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> {{ gatepass.student.student_name }}</p>
+                                        <p><strong>Hall Ticket:</strong> {{ gatepass.student.hall_ticket_no }}</p>
+                                        <p><strong>Room No:</strong> {{ gatepass.student.room_no }}</p>
+                                        <p><strong>Gender:</strong> {{ gatepass.student.user.gender|default:"Not specified" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Parent Name:</strong> {{ gatepass.student.parent_name }}</p>
+                                        <p><strong>Parent Mobile:</strong> {{ gatepass.student.parent_mobile }}</p>
+                                        <p><strong>Student Mobile:</strong> {{ gatepass.student.user.mobile_number|default:"Not provided" }}</p>
+                                        <p><strong>Email:</strong> {{ gatepass.student.user.email|default:"Not provided" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gatepass Details -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-muted">Gatepass Details</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Outing Date:</strong> {{ gatepass.outing_date }}</p>
+                                        <p><strong>Outing Time:</strong> {{ gatepass.outing_time }}</p>
+                                        <p><strong>Expected Return Date:</strong> {{ gatepass.expected_return_date }}</p>
+                                        <p><strong>Expected Return Time:</strong> {{ gatepass.expected_return_time }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Purpose:</strong> {{ gatepass.purpose|default:"Not specified" }}</p>
+                                        <p><strong>Requested On:</strong> {{ gatepass.created_at|date:"M d, Y H:i" }}</p>
+                                        <p><strong>Status:</strong> 
+                                            <span class="badge bg-warning">Pending</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approval Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-muted">Super Admin Decision</h6>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="action" id="approve" value="approve" required>
+                                <label class="form-check-label text-success" for="approve">
+                                    <i class="fas fa-check-circle me-2"></i><strong>Approve Gatepass</strong>
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="action" id="reject" value="reject" required>
+                                <label class="form-check-label text-danger" for="reject">
+                                    <i class="fas fa-times-circle me-2"></i><strong>Reject Gatepass</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="rejection-reason" style="display: none;">
+                        <label for="rejection_reason" class="form-label">Rejection Reason (Required)</label>
+                        <textarea class="form-control" name="rejection_reason" id="rejection_reason" rows="3" placeholder="Please provide a reason for rejection..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'superadmin_dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Submit Decision
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Approval Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Super Admin Authority:</strong> You have full authority to approve or reject any gatepass request.
+                </div>
+                
+                <h6 class="text-muted">Approval Checklist:</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Student information verified
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Parent contact details available
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Purpose is reasonable
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Dates are appropriate
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        No security concerns
+                    </li>
+                </ul>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> Your decision will be final and will notify all relevant parties.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rejectRadio = document.getElementById('reject');
+    const approveRadio = document.getElementById('approve');
+    const rejectionReason = document.getElementById('rejection-reason');
+    const reasonTextarea = document.getElementById('rejection_reason');
+    
+    rejectRadio.addEventListener('change', function() {
+        if (this.checked) {
+            rejectionReason.style.display = 'block';
+            reasonTextarea.required = true;
+        }
+    });
+    
+    approveRadio.addEventListener('change', function() {
+        if (this.checked) {
+            rejectionReason.style.display = 'none';
+            reasonTextarea.required = false;
+        }
+    });
+});
+</script>
+{% endblock %}

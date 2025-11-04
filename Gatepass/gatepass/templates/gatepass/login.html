@@ -1,0 +1,49 @@
+{% extends 'gatepass/auth_base.html' %}
+
+{% block title %}Login - Hostel Gatepass System{% endblock %}
+
+{% block content %}
+<div class="card mx-auto" style="max-width: 460px;">
+  <div class="card-body">
+    <h4 class="text-center mb-3">Login</h4>
+    {% if role_title %}
+    <div class="mb-2 text-muted text-center">{{ role_title }}</div>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="id_username" class="form-label">Username</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+          <input type="text" class="form-control" id="id_username" name="username" placeholder="Enter your username" required>
+        </div>
+        {% if role == 'student' %}
+        <div class="form-help mt-1">Format: Name@last4digits</div>
+        {% elif role == 'warden' %}
+        <div class="form-help mt-1">Use credentials approved by Super Admin.</div>
+        {% elif role == 'security' %}
+        <div class="form-help mt-1">Use credentials provided to the security desk.</div>
+        {% elif role == 'superadmin' %}
+        <div class="form-help mt-1">Admin access required.</div>
+        {% else %}
+        <div class="form-help mt-1">Students: Name@last4digits</div>
+        {% endif %}
+      </div>
+      <div class="mb-3">
+        <label for="id_password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+          <input type="password" class="form-control" id="id_password" name="password" placeholder="Enter your password" required>
+          <button class="btn btn-outline-secondary" type="button" data-toggle="password" data-target="id_password"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+    </form>
+  </div>
+  <div class="card-footer text-center">
+    <small>Don't have an account? <a href="{% url 'register' %}">Register</a></small>
+  </div>
+</div>
+{% endblock %}
