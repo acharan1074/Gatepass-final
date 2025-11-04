@@ -93,12 +93,8 @@ DATABASES = {
 RELAX_PASSWORDS = os.environ.get('RELAX_PASSWORDS', 'False').lower() == 'true'
 
 if DEBUG or RELAX_PASSWORDS:
-    AUTH_PASSWORD_VALIDATORS = [
-        {
-            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-            'OPTIONS': { 'min_length': 8 },
-        },
-    ]
+    # Fully relax validators to avoid username-similarity/common-password blocks
+    AUTH_PASSWORD_VALIDATORS = []
 else:
     AUTH_PASSWORD_VALIDATORS = [
         { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator' },
