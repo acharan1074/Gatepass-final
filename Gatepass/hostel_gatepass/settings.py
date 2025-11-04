@@ -89,15 +89,23 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
-# Password policy: relax in development for smoother onboarding
-if DEBUG:
+# Allow relaxing password rules via env in production to reduce friction
+RELAX_PASSWORDS = os.environ.get('RELAX_PASSWORDS', 'False').lower() == 'true'
+
+if DEBUG or RELAX_PASSWORDS:
     AUTH_PASSWORD_VALIDATORS = [
-        { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator' },
+        {
+            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+            'OPTIONS': { 'min_length': 8 },
+        },
     ]
 else:
-    # Production: relax similarity rule so passwords like "Name@123" are allowed
     AUTH_PASSWORD_VALIDATORS = [
-        { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': { 'min_length': 8 } },
+        { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator' },
+        {
+            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+            'OPTIONS': { 'min_length': 8 },
+        },
         { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator' },
         { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator' },
     ]
