@@ -3,17 +3,15 @@ services:
     name: gatepass-django
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
-    startCommand: gunicorn hostel_gatepass.wsgi:application
+    buildCommand: cd Gatepass && pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
+    startCommand: cd Gatepass && gunicorn hostel_gatepass.wsgi:application
     envVars:
       - key: DEBUG
-        value: false
+        value: False
       - key: PYTHON_VERSION
         value: 3.9.12
       - key: SECRET_KEY
         generateValue: true
-      - key: DJANGO_SETTINGS_MODULE
-        value: hostel_gatepass.settings
-      - key: DATABASE_URL
-        sync: false
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
 

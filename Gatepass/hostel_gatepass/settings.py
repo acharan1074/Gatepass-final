@@ -92,17 +92,13 @@ WSGI_APPLICATION = 'hostel_gatepass.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=not DEBUG,
-    )
-}
+# Database configuration - uses DATABASE_URL environment variable
+database_url = os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR}/db.sqlite3")
 
-# Ensure connections are closed properly
-CONN_MAX_AGE = 60
+# Update database configuration from DATABASE_URL environment variable
+DATABASES = {
+    'default': dj_database_url.parse(database_url, conn_max_age=600)
+}
 
 
 # Password validation
