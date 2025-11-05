@@ -42,3 +42,13 @@ urlpatterns = [
     path('debug/', views.debug_info, name='debug_info'),
     path('warden/debug/', views.warden_debug, name='warden_debug'),
 ]
+
+# --- API endpoints for mobile clients ---
+from . import api_views
+
+urlpatterns += [
+    path('api/login/', api_views.LoginAPIView.as_view(), name='api_login'),
+    path('api/gatepasses/', api_views.GatePassListCreateAPIView.as_view(), name='api_gatepass_list_create'),
+    path('api/gatepasses/<int:pk>/warden-approve/', api_views.WardenApproveAPIView.as_view(), name='api_warden_approve'),
+    path('api/gatepasses/<int:pk>/security-approve/', api_views.SecurityApproveAPIView.as_view(), name='api_security_approve'),
+]
