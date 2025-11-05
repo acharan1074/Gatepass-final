@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
+from .password_validation import validate_password_strength
 from .models import User, Student, GatePass, ParentVerification
 from django.utils import timezone
 from datetime import datetime, date
@@ -11,8 +12,12 @@ class StudentRegistrationForm(forms.ModelForm):
     
     password1 = forms.CharField(
         label='Password',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter a strong password'}),
-        min_length=8
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter password (8+ chars, upper/lower case, number, special char)'
+        }),
+        help_text='Password must be at least 8 characters and include uppercase, lowercase, number, and special character (@$!%*#?&)',
+        validators=[validate_password_strength]
     )
     password2 = forms.CharField(
         label='Confirm Password',
@@ -86,8 +91,12 @@ class WardenRegistrationForm(forms.ModelForm):
     
     password1 = forms.CharField(
         label='Password',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter a strong password'}),
-        min_length=8
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter password (8+ chars, upper/lower case, number, special char)'
+        }),
+        help_text='Password must be at least 8 characters and include uppercase, lowercase, number, and special character (@$!%*#?&)',
+        validators=[validate_password_strength]
     )
     password2 = forms.CharField(
         label='Confirm Password',
@@ -138,8 +147,12 @@ class SecurityRegistrationForm(forms.ModelForm):
     )
     password1 = forms.CharField(
         label='Password',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter a strong password'}),
-        min_length=8
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter password (8+ chars, upper/lower case, number, special char)'
+        }),
+        help_text='Password must be at least 8 characters and include uppercase, lowercase, number, and special character (@$!%*#?&)',
+        validators=[validate_password_strength]
     )
     password2 = forms.CharField(
         label='Confirm Password',
